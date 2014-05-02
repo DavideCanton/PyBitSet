@@ -7,7 +7,10 @@ This module exports a class, PyBitSet, that represents a bit set, i.e. a fixed-s
 
 Example of usage:
 
->>> p = PyBitSet(10, [1, 0, 4])
+```python
+>>> from pyBitSet import PyBitSet
+>>> p = PyBitSet(10, [1, 0, 4, 5])
+>>> p[5] = 0
 >>> p.to_bin_str()
 0000010011
 >>> len(p)
@@ -32,3 +35,4 @@ False
 1111100100
 >>> int(p)
 996
+```
