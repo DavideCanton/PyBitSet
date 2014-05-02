@@ -72,14 +72,13 @@ PyBitSet_init(PyBitSet* self, PyObject* args, PyObject* kwds)
             init_val_int >>= 8;
         }
     }
-    else if(PySequence_Check(init_val))
+    else if(init_val->ob_type->tp_iter)
     {
         iterator = PyObject_GetIter(init_val);
 
         if(iterator == NULL)
         {
             free(buf);
-            PyErr_SetString(PyExc_RuntimeError, "error while calling iter");
             return -1;
         }
 
@@ -196,7 +195,7 @@ PyBitSet_to_int(PyBitSet* self)
     }
     buf = (uint8_t*) view.buf;
     for(i = 0; i < size; ++i)
-        val += ((unsigned long)(buf[i] & 0xFF)) << (8 * i);
+        val += ((unsigned long)buf[i]) << (8 * i);
 
     PyBuffer_Release(&view);
     return PyLong_FromLong(val);
