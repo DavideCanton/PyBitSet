@@ -1,7 +1,7 @@
 #include <Python.h>
 #include <structmember.h>
 
-#define BIT_SET_SIZE(n) ((((n) + 7) & ~7) >> 3)
+#define BIT_SET_SIZE(n) (((n) + 7) >> 3)
 
 typedef struct
 {
