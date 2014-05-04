@@ -62,61 +62,64 @@ PyBitSet_init(PyBitSet* self, PyObject* args, PyObject* kwds)
     size = BIT_SET_SIZE(self->size);
     buf = calloc(size, sizeof(char));
 
-    if(PyLong_Check(init_val))
+    if(init_val)
     {
-        init_val_int = PyLong_AsLong(init_val);
-        for(i = 0; i < size; ++i)
+        if(PyLong_Check(init_val))
         {
-            buf[i] = init_val_int & 0xFF;
-            printf("buf[%d] = %d\n", i, buf[i] & 0xFF);
-            init_val_int >>= 8;
-        }
-    }
-    else if(init_val->ob_type->tp_iter)
-    {
-        iterator = PyObject_GetIter(init_val);
-
-        if(iterator == NULL)
-        {
-            free(buf);
-            return -1;
-        }
-
-        while((item = PyIter_Next(iterator)))
-        {
-            if(!PyLong_Check(item))
+            init_val_int = PyLong_AsLong(init_val);
+            for(i = 0; i < size; ++i)
             {
-                Py_DECREF(iterator);
-                free(buf);
-                PyErr_SetString(PyExc_ValueError, "sequence elements must be integers");
-                return -1;
+                buf[i] = init_val_int & 0xFF;
+                printf("buf[%d] = %d\n", i, buf[i] & 0xFF);
+                init_val_int >>= 8;
             }
-            elem = PyLong_AsLong(item);
-            if(elem >= self->size || elem < 0)
+        }
+        else if(init_val->ob_type->tp_iter)
+        {
+            iterator = PyObject_GetIter(init_val);
+
+            if(iterator == NULL)
             {
                 free(buf);
-                PyErr_SetString(PyExc_ValueError, "values must be between zero (inclusive) and size (exclusive)");
                 return -1;
             }
-            ++self->nnz;
-            buf[elem >> 3] |= 1 << (elem & 7);
-            Py_DECREF(item);
+
+            while((item = PyIter_Next(iterator)))
+            {
+                if(!PyLong_Check(item))
+                {
+                    Py_DECREF(iterator);
+                    free(buf);
+                    PyErr_SetString(PyExc_ValueError, "sequence elements must be integers");
+                    return -1;
+                }
+                elem = PyLong_AsLong(item);
+                if(elem >= self->size || elem < 0)
+                {
+                    free(buf);
+                    PyErr_SetString(PyExc_ValueError, "values must be between zero (inclusive) and size (exclusive)");
+                    return -1;
+                }
+                ++self->nnz;
+                buf[elem >> 3] |= 1 << (elem & 7);
+                Py_DECREF(item);
+            }
+
+            Py_DECREF(iterator);
+
+            if(PyErr_Occurred())
+            {
+                free(buf);
+                PyErr_SetString(PyExc_RuntimeError, "an error occurred");
+                return -1;
+            }
         }
-
-        Py_DECREF(iterator);
-
-        if(PyErr_Occurred())
+        else
         {
             free(buf);
-            PyErr_SetString(PyExc_RuntimeError, "an error occurred");
+            PyErr_SetString(PyExc_ValueError, "init_val must be an integer or a sequence of integers");
             return -1;
         }
-    }
-    else if(init_val)
-    {
-        free(buf);
-        PyErr_SetString(PyExc_ValueError, "init_val must be an integer or a sequence of integers");
-        return -1;
     }
 
     self->buf = PyByteArray_FromStringAndSize(buf, size);
@@ -309,6 +312,7 @@ PyBitSet_to_bin_str(PyBitSet* self)
     int i = 0, j = 0, size = BIT_SET_SIZE(self->size), index, val;
     Py_buffer view;
     uint8_t* buf;
+
     if(PyObject_GetBuffer(self->buf, &view, 0) < 0)
     {
         PyErr_SetString(PyExc_RuntimeError, "buffer read error");
@@ -324,12 +328,13 @@ PyBitSet_to_bin_str(PyBitSet* self)
         for(j = 0; j < 8; ++j)
         {
             index = (i << 3) + j;
-            str[self->size - index - 1] = (val >> j) & 1 ? '1' : '0';
             if(i == size - 1 && index > self->size - 1)
                 goto exit_loop;
+            str[self->size - index - 1] = (val >> j) & 1 ? '1' : '0';
         }
     }
 exit_loop:
+    PyBuffer_Release(&view);
     return PyUnicode_FromString(str);
 }
 
