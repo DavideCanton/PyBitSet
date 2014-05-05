@@ -330,7 +330,7 @@ PyBitSet_to_bin_str(PyBitSet* self)
             index = (i << 3) + j;
             if(i == size - 1 && index > self->size - 1)
                 goto exit_loop;
-            str[self->size - index - 1] = (val >> j) & 1 ? '1' : '0';
+            str[self->size - index - 1] = '0' + ((val >> j) & 1);
         }
     }
 exit_loop:
