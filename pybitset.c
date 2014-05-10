@@ -70,7 +70,6 @@ PyBitSet_init(PyBitSet* self, PyObject* args, PyObject* kwds)
             for(i = 0; i < size; ++i)
             {
                 buf[i] = init_val_int & 0xFF;
-                printf("buf[%d] = %d\n", i, buf[i] & 0xFF);
                 init_val_int >>= 8;
             }
         }
