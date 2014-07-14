@@ -10,6 +10,8 @@ Example of usage:
 ```python
 >>> from pyBitSet import PyBitSet
 >>> p = PyBitSet(10, [1, 0, 4, 5])
+>>> p.to_bin_str()
+0000110011
 >>> p[5] = 0
 >>> p.to_bin_str()
 0000010011
@@ -25,7 +27,7 @@ Example of usage:
 >>> p[3]
 1
 >>> 3 in p
-1
+True
 >>> 5 in p
 False
 >>> list(p)
