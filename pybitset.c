@@ -36,9 +36,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 typedef struct
 {
     PyObject_HEAD
-    PyObject* buf; /* data buffer stored in a Python bytearray*/
-    int size; /* the number of elements in the bitset */
-    int nnz; /* the number of non-zero elements in the bitset */
+    PyObject* buf; /* data buffer stored in a Python bytearray */
+    int size;      /* the number of elements in the bitset */
+    int nnz;       /* the number of non-zero elements in the bitset */
 } PyBitSet;
 
 /* Manual indexing adjustment for custom methods */
@@ -85,7 +85,7 @@ PyBitSet_init(PyBitSet* self, PyObject* args, PyObject* kwds)
     PyObject* init_val = NULL, *iterator, *item;
     static char* kwlist[] = {"size", "init_val", NULL};
 
-    /* accepts a size (int) and anoptional init_val */
+    /* accepts a size (int) and an optional init_val */
     if(!PyArg_ParseTupleAndKeywords(args, kwds, "i|O", kwlist, &self->size, &init_val))
         return -1;
 
@@ -161,8 +161,8 @@ PyBitSet_init(PyBitSet* self, PyObject* args, PyObject* kwds)
     return 0;
 }
 
-PyDoc_STRVAR(size_doc, "The size of the bitset, i.e. the number of\
-elements that the bitset can store.");
+PyDoc_STRVAR(size_doc, "The size of the bitset, i.e. the number of"
+                       "elements that the bitset can store.");
 
 PyDoc_STRVAR(buf_doc, "Internal buffer of the bitset.");
 
@@ -429,98 +429,98 @@ static PyMethodDef PyBitSet_methods[] =
 
 static PyNumberMethods PyBitSet_num =
 {
-    0,       /*nb_add*/
-    0,       /*nb_subtract*/
-    0,       /*nb_multiply*/
-    0,                   /*nb_remainder*/
-    0,                /*nb_divmod*/
-    0,                   /*nb_power*/
-    0,        /*nb_negative*/
-    0,       /*tp_positive*/
-    0,        /*tp_absolute*/
-    0,         /*tp_bool*/
-    0,     /*nb_invert*/
-    0,                /*nb_lshift*/
-    0,    /*nb_rshift*/
-    0,                   /*nb_and*/
-    0,                   /*nb_xor*/
-    0,                    /*nb_or*/
-    (unaryfunc) PyBitSet_to_int,                  /*nb_int*/
-    0,                          /*nb_reserved*/
-    0,                 /*nb_float*/
-    0,                          /* nb_inplace_add */
-    0,                          /* nb_inplace_subtract */
-    0,                          /* nb_inplace_multiply */
-    0,                          /* nb_inplace_remainder */
-    0,                          /* nb_inplace_power */
-    0,                          /* nb_inplace_lshift */
-    0,                          /* nb_inplace_rshift */
-    0,                          /* nb_inplace_and */
-    0,                          /* nb_inplace_xor */
-    0,                          /* nb_inplace_or */
-    0,                   /* nb_floor_divide */
-    0,           /* nb_true_divide */
-    0,                          /* nb_inplace_floor_divide */
-    0,                          /* nb_inplace_true_divide */
-    (unaryfunc) PyBitSet_to_int,                  /* nb_index */
+    0,                           /*nb_add*/
+    0,                           /*nb_subtract*/
+    0,                           /*nb_multiply*/
+    0,                           /*nb_remainder*/
+    0,                           /*nb_divmod*/
+    0,                           /*nb_power*/
+    0,                           /*nb_negative*/
+    0,                           /*tp_positive*/
+    0,                           /*tp_absolute*/
+    0,                           /*tp_bool*/
+    0,                           /*nb_invert*/
+    0,                           /*nb_lshift*/
+    0,                           /*nb_rshift*/
+    0,                           /*nb_and*/
+    0,                           /*nb_xor*/
+    0,                           /*nb_or*/
+    (unaryfunc) PyBitSet_to_int, /*nb_int*/
+    0,                           /*nb_reserved*/
+    0,                           /*nb_float*/
+    0,                           /* nb_inplace_add */
+    0,                           /* nb_inplace_subtract */
+    0,                           /* nb_inplace_multiply */
+    0,                           /* nb_inplace_remainder */
+    0,                           /* nb_inplace_power */
+    0,                           /* nb_inplace_lshift */
+    0,                           /* nb_inplace_rshift */
+    0,                           /* nb_inplace_and */
+    0,                           /* nb_inplace_xor */
+    0,                           /* nb_inplace_or */
+    0,                           /* nb_floor_divide */
+    0,                           /* nb_true_divide */
+    0,                           /* nb_inplace_floor_divide */
+    0,                           /* nb_inplace_true_divide */
+    (unaryfunc) PyBitSet_to_int, /* nb_index */
 };
 
 static PySequenceMethods PyBitSet_seq =
 {
-    (lenfunc)PyBitSet_Length,                       /* sq_length */
-    0,                    /* sq_concat */
-    0,                  /* sq_repeat */
-    (ssizeargfunc)PyBitSet_GetItem,                    /* sq_item */
-    0,                                          /* sq_slice */
-    (ssizeobjargproc)PyBitSet_SetItem,             /* sq_ass_item */
-    0,                                          /* sq_ass_slice */
-    (objobjproc)PyBitSet_Contains,                  /* sq_contains */
-    0,            /* sq_inplace_concat */
-    0,          /* sq_inplace_repeat */
+    (lenfunc)PyBitSet_Length,          /* sq_length */
+    0,                                 /* sq_concat */
+    0,                                 /* sq_repeat */
+    (ssizeargfunc)PyBitSet_GetItem,    /* sq_item */
+    0,                                 /* sq_slice */
+    (ssizeobjargproc)PyBitSet_SetItem, /* sq_ass_item */
+    0,                                 /* sq_ass_slice */
+    (objobjproc)PyBitSet_Contains,     /* sq_contains */
+    0,                                 /* sq_inplace_concat */
+    0,                                 /* sq_inplace_repeat */
 };
 
 static PyTypeObject PyBitSetType =
 {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "pyBitSet.PyBitSet",       /* tp_name */
-    sizeof(PyBitSet),             /* tp_basicsize */
-    0,                         /* tp_itemsize */
-    (destructor)PyBitSet_dealloc, /* tp_dealloc */
-    0,                         /* tp_print */
-    0,                         /* tp_getattr */
-    0,                         /* tp_setattr */
-    0,                         /* tp_reserved */
-    0,                         /* tp_repr */
-    &PyBitSet_num,             /* tp_as_number */
-    &PyBitSet_seq,             /* tp_as_sequence */
-    0,                         /* tp_as_mapping */
-    0,                         /* tp_hash  */
-    0,                         /* tp_call */
-    (reprfunc) PyBitSet_str,   /* tp_str */
-    0,                         /* tp_getattro */
-    0,                         /* tp_setattro */
-    0,                         /* tp_as_buffer */
+    "pyBitSet.PyBitSet",             /* tp_name */
+    sizeof(PyBitSet),                /* tp_basicsize */
+    0,                               /* tp_itemsize */
+    (destructor)PyBitSet_dealloc,    /* tp_dealloc */
+    0,                               /* tp_print */
+    0,                               /* tp_getattr */
+    0,                               /* tp_setattr */
+    0,                               /* tp_reserved */
+    0,                               /* tp_repr */
+    &PyBitSet_num,                   /* tp_as_number */
+    &PyBitSet_seq,                   /* tp_as_sequence */
+    0,                               /* tp_as_mapping */
+    0,                               /* tp_hash  */
+    0,                               /* tp_call */
+    (reprfunc) PyBitSet_str,         /* tp_str */
+    0,                               /* tp_getattro */
+    0,                               /* tp_setattro */
+    0,                               /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT |
     Py_TPFLAGS_BASETYPE |
-    Py_TPFLAGS_HAVE_GC,   /* tp_flags */
-    "PyBitSet objects",           /* tp_doc */
-    (traverseproc)PyBitSet_traverse,   /* tp_traverse */
-    (inquiry)PyBitSet_cleargc,           /* tp_clear */
-    0,                         /* tp_richcompare */
-    0,                         /* tp_weaklistoffset */
-    0,                         /* tp_iter */
-    0,                         /* tp_iternext */
-    PyBitSet_methods,             /* tp_methods */
-    PyBitSet_members,             /* tp_members */
-    0,                         /* tp_getset */
-    0,                         /* tp_base */
-    0,                         /* tp_dict */
-    0,                         /* tp_descr_get */
-    0,                         /* tp_descr_set */
-    0,                         /* tp_dictoffset */
-    (initproc)PyBitSet_init,      /* tp_init */
-    0,                         /* tp_alloc */
-    PyType_GenericNew,                 /* tp_new */
+    Py_TPFLAGS_HAVE_GC,              /* tp_flags */
+    "PyBitSet objects",              /* tp_doc */
+    (traverseproc)PyBitSet_traverse, /* tp_traverse */
+    (inquiry)PyBitSet_cleargc,       /* tp_clear */
+    0,                               /* tp_richcompare */
+    0,                               /* tp_weaklistoffset */
+    0,                               /* tp_iter */
+    0,                               /* tp_iternext */
+    PyBitSet_methods,                /* tp_methods */
+    PyBitSet_members,                /* tp_members */
+    0,                               /* tp_getset */
+    0,                               /* tp_base */
+    0,                               /* tp_dict */
+    0,                               /* tp_descr_get */
+    0,                               /* tp_descr_set */
+    0,                               /* tp_dictoffset */
+    (initproc)PyBitSet_init,         /* tp_init */
+    0,                               /* tp_alloc */
+    PyType_GenericNew,               /* tp_new */
 };
 
 static PyModuleDef pyBitSetmodule =
