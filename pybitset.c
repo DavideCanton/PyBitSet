@@ -161,7 +161,7 @@ PyBitSet_init(PyBitSet* self, PyObject* args, PyObject* kwds)
     return 0;
 }
 
-PyDoc_STRVAR(size_doc, "The size of the bitset, i.e. the number of"
+PyDoc_STRVAR(size_doc, "The size of the bitset, i.e. the number of "
                        "elements that the bitset can store.");
 
 PyDoc_STRVAR(buf_doc, "Internal buffer of the bitset.");
