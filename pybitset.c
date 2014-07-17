@@ -370,6 +370,99 @@ exit_loop:
 PyDoc_STRVAR(to_bin_str_doc, "Returns a binary string representing the bitset.");
 
 static PyObject*
+PyBitSet_update(PyBitSet* self, PyObject* args)
+{
+    long elem, acc;
+    int size = BIT_SET_SIZE(self->size), i;
+    Py_buffer view;
+    uint8_t* buf;
+    PyObject* val, *iterator, *item;
+
+    if(!PyArg_ParseTuple(args, "O", &val))
+        return NULL;
+
+    if(PyObject_GetBuffer(self->buf, &view, PyBUF_WRITABLE) < 0)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "buffer read error");
+        return NULL;
+    }
+
+    buf = (uint8_t*) view.buf;
+
+    if(val)
+    {
+        if(PyLong_Check(val))
+        {
+            self->nnz = 0;
+            elem = PyLong_AsLong(val);
+            for(i = 0; i < size; ++i)
+            {
+                buf[i] |= elem & 0xFF;
+                elem >>= 8;
+                acc = buf[i];
+                while(acc)
+                {
+                    self->nnz += acc & 1;
+                    acc >>= 1;
+                }
+            }
+        }
+        else if(val->ob_type->tp_iter)
+        {
+            iterator = PyObject_GetIter(val);
+
+            if(iterator == NULL)
+            {
+                free(buf);
+                return NULL;
+            }
+
+            while((item = PyIter_Next(iterator)))
+            {
+                if(!PyLong_Check(item))
+                {
+                    Py_DECREF(iterator);
+                    free(buf);
+                    PyErr_SetString(PyExc_ValueError, "sequence elements must be integers");
+                    return NULL;
+                }
+                elem = PyLong_AsLong(item);
+                if(elem >= self->size || elem < 0)
+                {
+                    free(buf);
+                    PyErr_SetString(PyExc_ValueError, "values must be between zero (inclusive) and size (exclusive)");
+                    return NULL;
+                }
+                if(!(buf[elem >> 3] & (1 << (elem & 7))))
+                    ++self->nnz;
+                buf[elem >> 3] |= 1 << (elem & 7);
+                Py_DECREF(item);
+            }
+
+            Py_DECREF(iterator);
+
+            if(PyErr_Occurred())
+            {
+                free(buf);
+                PyErr_SetString(PyExc_RuntimeError, "an error occurred");
+                return NULL;
+            }
+        }
+        else
+        {
+            free(buf);
+            PyErr_SetString(PyExc_ValueError, "init_val must be an integer or a sequence of integers");
+            return NULL;
+        }
+    }
+
+    PyBuffer_Release(&view);
+    Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(update_doc, "Updates the bitset with the specified collection/integer.");
+
+static PyObject*
 PyBitSet_GetItem(PyBitSet* self, Py_ssize_t bit)
 {
     int val;
@@ -424,6 +517,7 @@ static PyMethodDef PyBitSet_methods[] =
     {"flip_one", (PyCFunction)PyBitSet_flip_one, METH_VARARGS, flip_one_doc},
     {"flip_all", (PyCFunction)PyBitSet_flip_all, METH_NOARGS, flip_all_doc},
     {"to_bin_str", (PyCFunction)PyBitSet_to_bin_str, METH_NOARGS, to_bin_str_doc},
+    {"update", (PyCFunction)PyBitSet_update, METH_VARARGS, update_doc},
     {NULL}  /* Sentinel */
 };
 
