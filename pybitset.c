@@ -413,7 +413,7 @@ PyBitSet_update(PyBitSet* self, PyObject* args)
 
             if(iterator == NULL)
             {
-                free(buf);
+                PyErr_SetString(PyExc_RuntimeError, "error in getting iterator");
                 return NULL;
             }
 
@@ -422,14 +422,12 @@ PyBitSet_update(PyBitSet* self, PyObject* args)
                 if(!PyLong_Check(item))
                 {
                     Py_DECREF(iterator);
-                    free(buf);
                     PyErr_SetString(PyExc_ValueError, "sequence elements must be integers");
                     return NULL;
                 }
                 elem = PyLong_AsLong(item);
                 if(elem >= self->size || elem < 0)
                 {
-                    free(buf);
                     PyErr_SetString(PyExc_ValueError, "values must be between zero (inclusive) and size (exclusive)");
                     return NULL;
                 }
@@ -463,6 +461,58 @@ PyBitSet_update(PyBitSet* self, PyObject* args)
 }
 
 PyDoc_STRVAR(update_doc, "Updates the bitset with the specified collection/integer.");
+
+static PyObject*
+PyBitSet_elems(PyBitSet* self)
+{
+    int i = 0, j = 0, size = BIT_SET_SIZE(self->size), index, val, cur;
+    Py_buffer view;
+    uint8_t* buf;
+    PyObject* list = NULL, *elem = NULL;
+
+    if(PyObject_GetBuffer(self->buf, &view, 0) < 0)
+    {
+        PyErr_SetString(PyExc_RuntimeError, "buffer read error");
+        return NULL;
+    }
+
+    buf = (uint8_t*)view.buf;
+    list = PyList_New(self->nnz);
+    cur = 0;
+
+    if(!list)
+    {
+        PyBuffer_Release(&view);
+        PyErr_SetString(PyExc_RuntimeError, "error in allocating result");
+        return NULL;
+    }
+
+    for(; i < size; ++i)
+    {
+        val = buf[i];
+        j = 0;
+        while(val)
+        {
+            if(val & 1)
+            {
+                index = (i << 3) + j;
+                if(i == size - 1 && index > self->size - 1)
+                    goto exit_loop;
+                elem = PyLong_FromLong(index);
+                PyList_SET_ITEM(list, cur, elem);
+                ++cur;
+            }
+            val >>= 1;
+            ++j;
+        }
+    }
+exit_loop:
+    PyBuffer_Release(&view);
+    return list;
+}
+
+PyDoc_STRVAR(elems_doc, "Returns a list of the non-zero indexes in the bitset");
+
 
 static PyObject*
 PyBitSet_GetItem(PyBitSet* self, Py_ssize_t bit)
@@ -520,6 +570,7 @@ static PyMethodDef PyBitSet_methods[] =
     {"flip_all", (PyCFunction)PyBitSet_flip_all, METH_NOARGS, flip_all_doc},
     {"to_bin_str", (PyCFunction)PyBitSet_to_bin_str, METH_NOARGS, to_bin_str_doc},
     {"update", (PyCFunction)PyBitSet_update, METH_VARARGS, update_doc},
+    {"elems", (PyCFunction)PyBitSet_elems, METH_NOARGS, elems_doc},
     {NULL}  /* Sentinel */
 };
 
