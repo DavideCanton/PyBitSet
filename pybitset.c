@@ -146,7 +146,7 @@ PyBitSet_init(PyBitSet* self, PyObject* args, PyObject* kwds)
         else
         {
             free(buf);
-            PyErr_SetString(PyExc_ValueError, "init_val must be an integer or a sequence of integers");
+            PyErr_SetString(PyExc_ValueError, "val must be an integer or a sequence of integers");
             return -1;
         }
     }
@@ -433,9 +433,11 @@ PyBitSet_update(PyBitSet* self, PyObject* args)
                     PyErr_SetString(PyExc_ValueError, "values must be between zero (inclusive) and size (exclusive)");
                     return NULL;
                 }
-                if(!(buf[elem >> 3] & (1 << (elem & 7))))
+                acc = 1 << (elem & 7);
+                elem >>= 3;
+                if(!(buf[elem] & acc))
                     ++self->nnz;
-                buf[elem >> 3] |= 1 << (elem & 7);
+                buf[elem] |= acc;
                 Py_DECREF(item);
             }
 
